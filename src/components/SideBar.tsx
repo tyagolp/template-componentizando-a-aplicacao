@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useReducer } from 'react';
 import { Button } from './Button';
 
 import { api } from '../services/api';
+
+import { getReducer } from '../reducers/selecaoGeneroReducer';
+
 interface GenreResponseProps {
   id: number;
   name: 'action' | 'comedy' | 'documentary' | 'drama' | 'horror' | 'family';
@@ -9,6 +12,7 @@ interface GenreResponseProps {
 }
 
 export function SideBar() {
+  const [stateSelecao, dispatch] = getReducer();
   const [selectedGenreId, setSelectedGenreId] = useState(1);
   const [genres, setGenres] = useState<GenreResponseProps[]>([]);
 

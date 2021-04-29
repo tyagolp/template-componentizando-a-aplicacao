@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useReducer } from 'react';
 
 import { Button } from './components/Button';
 import { MovieCard } from './components/MovieCard';
 
 // import { SideBar } from './components/SideBar';
 // import { Content } from './components/Content';
+import { initSelecaco, selecaoGeneroReducer } from './reducers/selecaoGeneroReducer';
 
 import { api } from './services/api';
 
@@ -31,7 +32,8 @@ interface MovieProps {
 }
 
 export function App() {
-  const [selectedGenreId, setSelectedGenreId] = useState(1);
+  //const [selectedGenreId, setSelectedGenreId] = useState(1);
+  const [stateSelecao, dispatch] = useReducer(selecaoGeneroReducer, initSelecaco);
 
   const [genres, setGenres] = useState<GenreResponseProps[]>([]);
 
@@ -39,57 +41,58 @@ export function App() {
   const [selectedGenre, setSelectedGenre] = useState<GenreResponseProps>({} as GenreResponseProps);
 
   useEffect(() => {
-    api.get<GenreResponseProps[]>('genres').then(response => {
+    api.get<GenreResponseProps[]>('genres').then((response) => {
       setGenres(response.data);
     });
   }, []);
 
   useEffect(() => {
-    api.get<MovieProps[]>(`movies/?Genre_id=${selectedGenreId}`).then(response => {
+    api.get<MovieProps[]>(`movies/?Genre_id=${stateSelecao.selectedGenreId}`).then((response) => {
       setMovies(response.data);
     });
 
-    api.get<GenreResponseProps>(`genres/${selectedGenreId}`).then(response => {
+    api.get<GenreResponseProps>(`genres/${stateSelecao.selectedGenreId}`).then((response) => {
       setSelectedGenre(response.data);
-    })
-  }, [selectedGenreId]);
+    });
+  }, [stateSelecao.selectedGenreId]);
 
   function handleClickButton(id: number) {
-    setSelectedGenreId(id);
+    dispatch({
+      type: 'request',
+      payload: id,
+    });
+    //setSelectedGenreId(id);
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <nav className="sidebar">
-        <span>Watch<p>Me</p></span>
+      <nav className='sidebar'>
+        <span>
+          Watch<p>Me</p>
+        </span>
 
-        <div className="buttons-container">
-          {genres.map(genre => (
-            <Button
-              key={String(genre.id)}
-              title={genre.title}
-              iconName={genre.name}
-              onClick={() => handleClickButton(genre.id)}
-              selected={selectedGenreId === genre.id}
-            />
+        <div className='buttons-container'>
+          {genres.map((genre) => (
+            <Button key={String(genre.id)} title={genre.title} iconName={genre.name} onClick={() => handleClickButton(genre.id)} selected={selectedGenreId === genre.id} />
           ))}
         </div>
-
       </nav>
 
-      <div className="container">
+      <div className='container'>
         <header>
-          <span className="category">Categoria:<span> {selectedGenre.title}</span></span>
+          <span className='category'>
+            Categoria:<span> {selectedGenre.title}</span>
+          </span>
         </header>
 
         <main>
-          <div className="movies-list">
-            {movies.map(movie => (
-              <MovieCard key ={movie.imdbID} title={movie.Title} poster={movie.Poster} runtime={movie.Runtime} rating={movie.Ratings[0].Value} />
+          <div className='movies-list'>
+            {movies.map((movie) => (
+              <MovieCard key={movie.imdbID} title={movie.Title} poster={movie.Poster} runtime={movie.Runtime} rating={movie.Ratings[0].Value} />
             ))}
           </div>
         </main>
       </div>
     </div>
-  )
+  );
 }
